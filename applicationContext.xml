@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd"
+        default-autowire="byName">
+
+
+    <!--注解配置-->
+    <!--指定要扫描的包，把这个包下的注解的类注册到容器中; 包括子包里的类-->
+    <context:component-scan base-package="com.bus.entity"/>
+    <context:component-scan base-package="com.bus.service"/>
+    <context:component-scan base-package="com.bus.dao"/>
+
+    <!-- 把db.properties 的内容引进来   -->
+    <context:property-placeholder location="classpath:db.properties"/>
+    <!--========= spring  JDBC   =============-->
+    <!-- 1:配置连接池  -->
+    <bean name="dateSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="jdbcUrl" value="${jdbc.url}"/>
+        <property name="driverClass" value="${jdbc.driver}"/>
+        <property name="user" value="${jdbc.user}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dateSource"/>
+        <property name="mappingResources" >
+            <list>
+                <value>/User.hbm.xml</value>
+            </list>
+        </property>
+
+
+        <property name="hibernateProperties">
+            <value>
+                hibernate.dialect=org.hibernate.dialect.MySQL5Dialect
+                hibernate.hbm2ddl.auto=update
+                hibernate.show_sql=true
+                <!--hibernate.format_sql=true-->
+            </value>
+        </property>
+    </bean>
+
+    <bean id="userDao" class="com.bus.dao.impl.UserDaoImpl">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+    <!-- sping  的事务配置    -->
+    <!-- 配置有三种  1、编码式   2、xml配置（aop）  3、注解配置 -->
+    <!--事务xml配置-->
+    <!--1、事务核心 :依赖连接池-->
+    <bean name="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        <property name="dataSource" ref="dateSource"/>
+    </bean>
+    <!--事务注解配置-->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+
+
+
+</beans>
